@@ -1,0 +1,11 @@
+﻿  main.cpp
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(11): warning C4305: 'initializing': truncation from 'double' to 'float'
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(12): warning C4305: 'initializing': truncation from 'double' to 'float'
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(19): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(20): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(21): warning C4305: 'initializing': truncation from 'double' to 'float'
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(111): warning C4838: conversion from 'float' to 'int' requires a narrowing conversion
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(111): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(112): warning C4838: conversion from 'float' to 'int' requires a narrowing conversion
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(112): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  SpaceJam.vcxproj -> G:\VisualStudioProjects\SpaceJam\Debug\SpaceJam.exe
