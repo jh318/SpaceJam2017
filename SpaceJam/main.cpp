@@ -1,5 +1,10 @@
 #include "SDL.h"
 #include <SDL_mixer.h>
+#include <SDL_ttf.h>
+#include <iostream>
+#include <string>
+
+using namespace std;
 
 void Destroy();
 void gameOver();
@@ -15,6 +20,7 @@ Mix_Chunk *gDefenderBreak = NULL;
 Mix_Chunk *gPlayerHit = NULL;
 Mix_Chunk *gGameOver = NULL;
 Mix_Chunk *gBallWall = NULL;
+Mix_Chunk *gBrickReset = NULL;
 
 SDL_Window *window;
 
@@ -37,13 +43,28 @@ SDL_Rect defenderRect[2][7];
 SDL_Rect ballRect;
 SDL_Rect batRect;
 SDL_Rect backgroundRect;
+SDL_Rect dst;
 
 SDL_Event event;
 
+//Text
+string scoreText;
+TTF_Font *font;
+SDL_Color color;
+SDL_Surface *textSurface;
+SDL_Texture *text;
+SDL_Rect textRect;
+
+
+
+
+
 bool quit = false;
 bool startgame = false;
+bool resetEnemy = true;
+bool gameEnd = false;
 
-int FRAMES_PER_SECOND = 60;
+int totalScore = 0;
 
 int bgw = ScreenX;
 int bgh = ScreenY;
@@ -132,12 +153,13 @@ void ballCollision() {
 	}
 	if (ballY > bgh + 60) {
 		gameOver();
+		//ballVelY = -ballVelY;
 	}
 
 	int ballScaling = 20;
 	if (ballY + ballScaling >= batY && ballY + ballScaling <= batY + 30 && ballX+ballScaling >= batX && ballX+ballScaling <= batX+60) {
 		ballVelY = -ballVelY;
-		Mix_PlayChannel(-1, gPlayerHit, 0);
+		if(startgame) Mix_PlayChannel(-1, gPlayerHit, 0);
 	}
 }
 
@@ -170,6 +192,18 @@ void ballBrickCollision() {
 				Mix_PlayChannel(-1, gBrickBreak, 0);
 			}
 		}
+	}
+}
+
+void resetBricks() {
+	int currSpaceX = 50;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 7; j++) {
+			brickRect[i][j].x = currSpaceX;
+			currSpaceX += 100;
+		}
+		currSpaceX = 50;
 	}
 }
 
@@ -220,6 +254,8 @@ void gameOver() {
 	SDL_Rect goRect = { 0, 0, bgw, bgh };
 	Mix_PlayChannel(-1, gGameOver, 0);
 	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
+	SDL_RenderCopy(renderer, text, NULL, &textRect);
+	gameEnd = true;
 	SDL_RenderPresent(renderer);
 	SDL_Delay(20000);
 	Destroy();
@@ -229,6 +265,7 @@ void gameOver() {
 int main(int argc, char * argv[])
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
+	TTF_Init();
 		window = SDL_CreateWindow("The Game", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenX, ScreenY, 0);
 		renderer = SDL_CreateRenderer(window, -1, 0);
@@ -241,6 +278,18 @@ int main(int argc, char * argv[])
 		gBrickBreak = Mix_LoadWAV("Assets/Audio/explosion1.wav");
 		gPlayerHit = Mix_LoadWAV("Assets/Audio/energy1.wav");
 		gBallWall = Mix_LoadWAV("Assets/Audio/explosion2.wav");
+		gBrickReset = Mix_LoadWAV("Assets/Audio/evillaugh.wav");
+
+		//Draw Text
+		scoreText = "FinalScore: " + std::to_string(totalScore);
+		font = TTF_OpenFont("Assets/Fonts/arialnarrow.ttf", 100);
+		color = { 255,77,77,255 };
+		textSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
+		text = SDL_CreateTextureFromSurface(renderer, textSurface);
+		textRect;
+		textRect.x = (ScreenX / 2) - 300;
+		textRect.y = (ScreenY / 2) - 200;
+		SDL_QueryTexture(text, NULL, NULL, &textRect.w, &textRect.h);
 
 		int frame = 0;
 		bool cap = true;
@@ -271,6 +320,7 @@ int main(int argc, char * argv[])
 			EventHandler();
 			batRect = { (int)batX, (int)batY, 40, 30 };
 			ballRect = { (int)ballX , (int)ballY, 20, 30 };
+
 			if (startgame) { 
 				moveBall(); 
 			}
@@ -278,8 +328,14 @@ int main(int argc, char * argv[])
 			ballBrickCollision();
 			ballDefenderCollision();
 			if (deleteBrickCount == numberOfBricks) {
-				win();
+				totalScore += deleteBrickCount;
+				//win();
+				deleteBrickCount = 0;
+				//resetEnemy = true;
+				resetBricks();
+				Mix_PlayChannel(-1, gBrickBreak, 0);
 			}
+
 			SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
 			SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 			SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
@@ -288,6 +344,7 @@ int main(int argc, char * argv[])
 					SDL_RenderCopy(renderer, brickTexture, NULL, &brickRect[i][j]);
 				}
 			}
+
 			for (int i = 0; i < 2; i++) {
 				for (int j = 0; j < 7; j++) {
 					SDL_RenderCopy(renderer, defenderTexture, NULL, &defenderRect[i][j]);

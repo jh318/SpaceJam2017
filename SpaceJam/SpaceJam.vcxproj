@@ -70,19 +70,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\John\Documents\VSLibraries\SDL2_mixer\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\John\Documents\VSLibraries\SDL2_mixer\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\John\Documents\VSLibraries\SDL2_ttf\include;C:\Users\John\Documents\VSLibraries\SDL2_mixer\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\John\Documents\VSLibraries\SDL2_ttf\lib\x86;C:\Users\John\Documents\VSLibraries\SDL2_mixer\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\John\Documents\VSLibraries\SDL2_mixer\lib\x86;C:\Users\John\Documents\VSLibraries\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\John\Documents\VSLibraries\SDL2_ttf\lib\x86;C:\Users\John\Documents\VSLibraries\SDL2_mixer\lib\x86;C:\Users\John\Documents\VSLibraries\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Users\John\Documents\VSLibraries\SDL2\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_mixer.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
