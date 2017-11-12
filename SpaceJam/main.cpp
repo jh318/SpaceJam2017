@@ -1,5 +1,8 @@
 #include "SDL.h"
 
+void Destroy();
+void gameOver();
+
 int ScreenX = 800;
 int ScreenY = 600;
 
@@ -89,8 +92,11 @@ void ballCollision() {
 	if (ballX < bgwmin || ballX > bgw - 30) {
 		ballVelX = -ballVelX;
 	}
-	if (ballY < bghmin || ballY > bgh - 30) {
+	if (ballY < bghmin) {
 		ballVelY = -ballVelY;
+	}
+	if (ballY > bgh + 60) {
+		gameOver();
 	}
 
 	int ballScaling = 20;
@@ -154,7 +160,18 @@ void win() {
 	SDL_Quit;
 }
 
-int main(int argc, char *argv[])
+void gameOver() {
+	SDL_Surface *go = SDL_LoadBMP("Assets/Images/win.bmp");
+	SDL_Texture *goTexture = SDL_CreateTextureFromSurface(renderer, go);
+	SDL_Rect goRect = { 0, 0, bgw, bgh };
+	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
+	SDL_RenderPresent(renderer);
+	SDL_Delay(20000);
+	Destroy();
+	SDL_Quit();
+}
+
+int main(int argc, char * argv[])
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 		window = SDL_CreateWindow("The Game", 
