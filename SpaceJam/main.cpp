@@ -316,7 +316,7 @@ int main(int argc, char * argv[])
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	TTF_Init();
-		window = SDL_CreateWindow("The Game", 
+		window = SDL_CreateWindow("Final Frontier", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenX, ScreenY, 0);
 		renderer = SDL_CreateRenderer(window, -1, 0);
 
