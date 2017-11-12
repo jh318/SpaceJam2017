@@ -1,10 +1,20 @@
 #include "SDL.h"
+#include <SDL_mixer.h>
 
 void Destroy();
 void gameOver();
 
 int ScreenX = 800;
 int ScreenY = 600;
+
+Mix_Music *gMusic = NULL;
+
+Mix_Chunk *gScratch = NULL;
+Mix_Chunk *gBrickBreak = NULL;
+Mix_Chunk *gDefenderBreak = NULL;
+Mix_Chunk *gPlayerHit = NULL;
+Mix_Chunk *gGameOver = NULL;
+Mix_Chunk *gBallWall = NULL;
 
 SDL_Window *window;
 
@@ -114,9 +124,11 @@ void moveBall() {
 void ballCollision() {
 	if (ballX < bgwmin || ballX > bgw - 30) {
 		ballVelX = -ballVelX;
+		Mix_PlayChannel(-1, gBallWall, 0);
 	}
 	if (ballY < bghmin) {
 		ballVelY = -ballVelY;
+		Mix_PlayChannel(-1, gBallWall, 0);
 	}
 	if (ballY > bgh + 60) {
 		gameOver();
@@ -125,6 +137,7 @@ void ballCollision() {
 	int ballScaling = 20;
 	if (ballY + ballScaling >= batY && ballY + ballScaling <= batY + 30 && ballX+ballScaling >= batX && ballX+ballScaling <= batX+60) {
 		ballVelY = -ballVelY;
+		Mix_PlayChannel(-1, gPlayerHit, 0);
 	}
 }
 
@@ -141,6 +154,7 @@ bool ballCollisionDetect(SDL_Rect rect1, SDL_Rect rect2) {
 	if (rect1.y + rect1.h < rect2.y) {
 		return false;
 	}
+	//Mix_PlayChannel(-1, gScratch, 0);
 	return true;
 }	
 
@@ -153,6 +167,7 @@ void ballBrickCollision() {
 				brickRect[i][j].x = 30000;
 				ballVelY = -ballVelY;
 				deleteBrickCount++;
+				Mix_PlayChannel(-1, gBrickBreak, 0);
 			}
 		}
 	}
@@ -166,6 +181,7 @@ void ballDefenderCollision() {
 			if (a) {
 				defenderRect[i][j].x = 30000;
 				ballVelY = -ballVelY;
+				Mix_PlayChannel(-1, gDefenderBreak, 0);
 			}
 		}
 	}
@@ -202,6 +218,7 @@ void gameOver() {
 	SDL_Surface *go = SDL_LoadBMP("Assets/Images/destroyedearth.bmp");
 	SDL_Texture *goTexture = SDL_CreateTextureFromSurface(renderer, go);
 	SDL_Rect goRect = { 0, 0, bgw, bgh };
+	Mix_PlayChannel(-1, gGameOver, 0);
 	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
 	SDL_RenderPresent(renderer);
 	SDL_Delay(20000);
@@ -215,6 +232,15 @@ int main(int argc, char * argv[])
 		window = SDL_CreateWindow("The Game", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenX, ScreenY, 0);
 		renderer = SDL_CreateRenderer(window, -1, 0);
+
+		//Load Audio
+		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+		gScratch = Mix_LoadWAV("Assets/Audio/test.wav");
+		gDefenderBreak = Mix_LoadWAV("Assets/Audio/Scream.wav");
+		gGameOver = Mix_LoadWAV("Assets/Audio/slowdeath.wav");
+		gBrickBreak = Mix_LoadWAV("Assets/Audio/explosion1.wav");
+		gPlayerHit = Mix_LoadWAV("Assets/Audio/energy1.wav");
+		gBallWall = Mix_LoadWAV("Assets/Audio/explosion2.wav");
 
 		int frame = 0;
 		bool cap = true;
