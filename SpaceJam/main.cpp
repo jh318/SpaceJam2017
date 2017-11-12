@@ -3,29 +3,50 @@
 int ScreenX = 800;
 int ScreenY = 600;
 
-bool quit = false;
+SDL_Window *window;
+
+SDL_Renderer * renderer;
+
+SDL_Surface *background;
+SDL_Surface *ball;
+SDL_Surface *bat;
+SDL_Surface *brick;
+
+SDL_Texture *backgroundTexture;
+SDL_Texture *ballTexture;
+SDL_Texture *batTexture;
+SDL_Texture *brickTexture;
+
+SDL_Rect brickRect[3][7];
+SDL_Rect ballRect;
+SDL_Rect batRect;
+SDL_Rect backgroundRect;
+
 SDL_Event event;
 
-float ballX = 10;	//Determines Start Location
-float ballY = 300; //Determines Start Location
-float ballVelX = 0.05;
-float ballVelY = 0.05;
+bool quit = false;
+int FRAMES_PER_SECOND = 60;
+
+int ballX = 10;	//Determines Start Location
+int ballY = 300; //Determines Start Location
+int ballVelX = 1;
+int ballVelY = 1;
 
 int bgw = ScreenX;
 int bgh = ScreenY;
 int bgwmin = 0;
 int bghmin = 0;
 
-float batX = bgw / 2;
-float batY = bgh - 30;
-float batSpeed = 0.05;
+int batX = bgw / 2;
+int batY = bgh - 30;
+int batSpeed = 1;
+
+int deleteBrickCount = 0;
+int numberOfBricks = 21;
 
 int brickw = 80;
 int brickh = 35;
-SDL_Surface *brick;
-SDL_Texture *brickTexture;
-SDL_Rect brickRect[3][7];
-SDL_Rect ballRect;
+
 
 
 void InitializeBrick() {
@@ -102,42 +123,75 @@ void ballBrickCollision() {
 			if (a) {
 				brickRect[i][j].x = 30000;
 				ballVelY = -ballVelY;
+				deleteBrickCount++;
 			}
 		}
 	}
 }
 
+void Destroy(){
+	SDL_DestroyTexture(batTexture);
+	SDL_DestroyTexture(brickTexture);
+	SDL_DestroyTexture(backgroundTexture);
+	SDL_DestroyTexture(ballTexture);
+	SDL_FreeSurface(bat);
+	SDL_FreeSurface(brick);
+	SDL_FreeSurface(background);
+	SDL_FreeSurface(ball);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	
+}
+
+void win() {
+	SDL_Surface *win = SDL_LoadBMP("Assets/Images/win.bmp");
+	SDL_Texture *winTexture = SDL_CreateTextureFromSurface(renderer, win);
+	SDL_Rect winRect = { 250, 200, 350, 350 };
+	SDL_RenderCopy(renderer, winTexture, NULL, &winRect);
+	SDL_RenderPresent(renderer);
+	SDL_Delay(10000);
+	Destroy();
+	SDL_Quit;
+}
+
 int main(int argc, char *argv[])
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
-		SDL_Window *window = SDL_CreateWindow("The Game", 
+		window = SDL_CreateWindow("The Game", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenX, ScreenY, 0);
-		SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
+		renderer = SDL_CreateRenderer(window, -1, 0);
+
+		int frame = 0;
+		bool cap = true;
+		//SDL_Timer fps;
+
 		//Rect
-		SDL_Rect backgroundRect = { 0,0, ScreenX, ScreenY };
+		backgroundRect = { 0,0, ScreenX, ScreenY };
 		InitializeBrick();
 		//Surface
-		SDL_Surface *background = SDL_LoadBMP("Assets/Images/bk.bmp");
-		SDL_Surface *ball = SDL_LoadBMP("Assets/Images/ball.bmp");
-		SDL_Surface *bat = SDL_LoadBMP("Assets/Images/bat.bmp");
+		background = SDL_LoadBMP("Assets/Images/bk.bmp");
+		ball = SDL_LoadBMP("Assets/Images/ball.bmp");
+		bat = SDL_LoadBMP("Assets/Images/bat.bmp");
 		brick = SDL_LoadBMP("Assets/Images/brick.bmp");
 		//Texture
-		SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(renderer, background);
-		SDL_Texture *ballTexture = SDL_CreateTextureFromSurface(renderer, ball);
-		SDL_Texture *batTexture = SDL_CreateTextureFromSurface(renderer, bat);
+		backgroundTexture = SDL_CreateTextureFromSurface(renderer, background);
+		ballTexture = SDL_CreateTextureFromSurface(renderer, ball);
+		batTexture = SDL_CreateTextureFromSurface(renderer, bat);
 		brickTexture = SDL_CreateTextureFromSurface(renderer, brick);
 
 		SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
-		//Render Bricks
-
 
 		while (!quit) {
+			SDL_Delay(1);
 			EventHandler();
-			SDL_Rect batRect = { batX, batY, 60, 30 };
+			batRect = { (int)batX, (int)batY, 60, 30 };
 			ballRect = { (int)ballX , (int)ballY, 20, 30 };
 			moveBall();
 			ballCollision();
 			ballBrickCollision();
+			if (deleteBrickCount == numberOfBricks) {
+				win();
+			}
 			SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
 			SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 			SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
@@ -149,7 +203,6 @@ int main(int argc, char *argv[])
 			SDL_RenderPresent(renderer);
 			SDL_RenderClear(renderer);
 		}
-		
 		SDL_Quit();
 
 
