@@ -8,6 +8,7 @@ using namespace std;
 
 void Destroy();
 void gameOver();
+void SetAndDrawText();
 
 int ScreenX = 800;
 int ScreenY = 600;
@@ -190,6 +191,7 @@ void ballBrickCollision() {
 				ballVelY = -ballVelY;
 				deleteBrickCount++;
 				Mix_PlayChannel(-1, gBrickBreak, 0);
+				totalScore++;
 			}
 		}
 	}
@@ -254,12 +256,25 @@ void gameOver() {
 	SDL_Rect goRect = { 0, 0, bgw, bgh };
 	Mix_PlayChannel(-1, gGameOver, 0);
 	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
+	SetAndDrawText();
 	SDL_RenderCopy(renderer, text, NULL, &textRect);
 	gameEnd = true;
 	SDL_RenderPresent(renderer);
 	SDL_Delay(20000);
 	Destroy();
 	SDL_Quit();
+}
+
+void SetAndDrawText() {
+	scoreText = "FinalScore: " + std::to_string(totalScore);
+	font = TTF_OpenFont("Assets/Fonts/arialnarrow.ttf", 100);
+	color = { 255,77,77,255 };
+	textSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
+	text = SDL_CreateTextureFromSurface(renderer, textSurface);
+	textRect;
+	textRect.x = (ScreenX / 2) - 300;
+	textRect.y = (ScreenY / 2) - 200;
+	SDL_QueryTexture(text, NULL, NULL, &textRect.w, &textRect.h);
 }
 
 int main(int argc, char * argv[])
@@ -281,15 +296,7 @@ int main(int argc, char * argv[])
 		gBrickReset = Mix_LoadWAV("Assets/Audio/evillaugh.wav");
 
 		//Draw Text
-		scoreText = "FinalScore: " + std::to_string(totalScore);
-		font = TTF_OpenFont("Assets/Fonts/arialnarrow.ttf", 100);
-		color = { 255,77,77,255 };
-		textSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
-		text = SDL_CreateTextureFromSurface(renderer, textSurface);
-		textRect;
-		textRect.x = (ScreenX / 2) - 300;
-		textRect.y = (ScreenY / 2) - 200;
-		SDL_QueryTexture(text, NULL, NULL, &textRect.w, &textRect.h);
+		
 
 		int frame = 0;
 		bool cap = true;
@@ -327,13 +334,13 @@ int main(int argc, char * argv[])
 			ballCollision();
 			ballBrickCollision();
 			ballDefenderCollision();
+
 			if (deleteBrickCount == numberOfBricks) {
-				totalScore += deleteBrickCount;
 				//win();
 				deleteBrickCount = 0;
 				//resetEnemy = true;
 				resetBricks();
-				Mix_PlayChannel(-1, gBrickBreak, 0);
+				Mix_PlayChannel(-1, gBrickReset, 0);
 			}
 
 			SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
