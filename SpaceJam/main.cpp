@@ -9,6 +9,7 @@ using namespace std;
 void Destroy();
 void gameOver();
 void SetAndDrawText();
+void resetGame();
 
 int ScreenX = 800;
 int ScreenY = 600;
@@ -74,12 +75,12 @@ int bghmin = 0;
 
 int ballX = bgw/2;	//Determines Start Location
 int ballY = bgh - 160; //Determines Start Location
-int ballVelX = 3;
-int ballVelY = -3;
+int ballVelX = 5;
+int ballVelY = -4;
 
 int batX = bgw / 2;
 int batY = bgh - 170;
-int batSpeed = 5;
+int batSpeed = 4;
 
 int deleteBrickCount = 0;
 int numberOfBricks = 21;
@@ -132,6 +133,12 @@ void EventHandler() {
 		}
 		if (event.key.keysym.sym == SDLK_SPACE) {
 			startgame = true;
+		}
+		if (event.key.keysym.sym == SDLK_ESCAPE) {
+			quit = true;
+		}
+		if (event.key.keysym.sym == SDLK_r) {
+			resetGame();
 		}
 	}
 
@@ -223,6 +230,18 @@ void ballDefenderCollision() {
 	}
 }
 
+void resetDefenders() {
+	int currSpaceX = 90;
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 7; j++) {
+			defenderRect[i][j].x = currSpaceX;
+			currSpaceX += 100;
+		}
+		currSpaceX = 40;
+	}
+}
+
 void Destroy(){
 	SDL_DestroyTexture(batTexture);
 	SDL_DestroyTexture(brickTexture);
@@ -250,19 +269,35 @@ void win() {
 	SDL_Quit;
 }
 
+
+
 void gameOver() {
 	SDL_Surface *go = SDL_LoadBMP("Assets/Images/destroyedearth.bmp");
 	SDL_Texture *goTexture = SDL_CreateTextureFromSurface(renderer, go);
 	SDL_Rect goRect = { 0, 0, bgw, bgh };
 	Mix_PlayChannel(-1, gGameOver, 0);
-	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
-	SetAndDrawText();
-	SDL_RenderCopy(renderer, text, NULL, &textRect);
 	gameEnd = true;
+	if(gameEnd)SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
+	SetAndDrawText();
+	if(gameEnd)SDL_RenderCopy(renderer, text, NULL, &textRect);
 	SDL_RenderPresent(renderer);
-	SDL_Delay(20000);
-	Destroy();
-	SDL_Quit();
+	SDL_Delay(5000);
+	//Destroy();
+	//SDL_Quit();
+	resetGame();
+}
+
+void resetGame() {
+	quit = false;
+	gameEnd = false;
+	totalScore = 0;
+	deleteBrickCount = 0;
+	resetBricks();
+	resetDefenders();
+	startgame = false;
+	ballX = bgw / 2;
+	ballY = bgh - 160;
+	ballVelY = 4;
 }
 
 void SetAndDrawText() {
@@ -287,13 +322,16 @@ int main(int argc, char * argv[])
 
 		//Load Audio
 		Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+		gMusic = Mix_LoadMUS("Assets/Audio/TheAnswer.wav");
 		gScratch = Mix_LoadWAV("Assets/Audio/test.wav");
 		gDefenderBreak = Mix_LoadWAV("Assets/Audio/Scream.wav");
 		gGameOver = Mix_LoadWAV("Assets/Audio/slowdeath.wav");
 		gBrickBreak = Mix_LoadWAV("Assets/Audio/explosion1.wav");
 		gPlayerHit = Mix_LoadWAV("Assets/Audio/energy1.wav");
-		gBallWall = Mix_LoadWAV("Assets/Audio/explosion2.wav");
+		gBallWall = Mix_LoadWAV("Assets/Audio/energybounce.wav");
 		gBrickReset = Mix_LoadWAV("Assets/Audio/evillaugh.wav");
+
+		Mix_PlayMusic(gMusic, -1);
 
 		//Draw Text
 		
@@ -303,7 +341,6 @@ int main(int argc, char * argv[])
 		//SDL_Timer fps;
 
 		//Rect
-		backgroundRect = { 0,0, ScreenX, ScreenY };
 		InitializeBrick();
 		InitializeDefenders();
 		//Surface
@@ -323,7 +360,7 @@ int main(int argc, char * argv[])
 		
 
 		while (!quit) {
-			SDL_Delay(10);
+			SDL_Delay(9);
 			EventHandler();
 			batRect = { (int)batX, (int)batY, 40, 30 };
 			ballRect = { (int)ballX , (int)ballY, 20, 30 };
@@ -343,6 +380,7 @@ int main(int argc, char * argv[])
 				Mix_PlayChannel(-1, gBrickReset, 0);
 			}
 
+			backgroundRect = { 0,0, ScreenX, ScreenY };
 			SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
 			SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 			SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
