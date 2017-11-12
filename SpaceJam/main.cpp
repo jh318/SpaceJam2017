@@ -14,13 +14,16 @@ SDL_Surface *background;
 SDL_Surface *ball;
 SDL_Surface *bat;
 SDL_Surface *brick;
+SDL_Surface *defender;
 
 SDL_Texture *backgroundTexture;
 SDL_Texture *ballTexture;
 SDL_Texture *batTexture;
 SDL_Texture *brickTexture;
+SDL_Texture *defenderTexture;
 
 SDL_Rect brickRect[3][7];
+SDL_Rect defenderRect[2][7];
 SDL_Rect ballRect;
 SDL_Rect batRect;
 SDL_Rect backgroundRect;
@@ -28,29 +31,32 @@ SDL_Rect backgroundRect;
 SDL_Event event;
 
 bool quit = false;
-int FRAMES_PER_SECOND = 60;
+bool startgame = false;
 
-int ballX = 10;	//Determines Start Location
-int ballY = 300; //Determines Start Location
-int ballVelX = 1;
-int ballVelY = 1;
+int FRAMES_PER_SECOND = 60;
 
 int bgw = ScreenX;
 int bgh = ScreenY;
 int bgwmin = 0;
 int bghmin = 0;
 
+int ballX = bgw/2;	//Determines Start Location
+int ballY = bgh - 160; //Determines Start Location
+int ballVelX = 3;
+int ballVelY = -3;
+
 int batX = bgw / 2;
-int batY = bgh - 30;
-int batSpeed = 1;
+int batY = bgh - 170;
+int batSpeed = 5;
 
 int deleteBrickCount = 0;
 int numberOfBricks = 21;
 
-int brickw = 80;
+int brickw = 60;
 int brickh = 35;
 
-
+int defenderw = 40;
+int defenderh = 35;
 
 void InitializeBrick() {
 	int currSpaceX = 50;
@@ -66,6 +72,20 @@ void InitializeBrick() {
 	}
 }
 
+void InitializeDefenders() {
+	int currSpaceX = 90;
+	int currSpaceY = ScreenY - 120;
+
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 7; j++) {
+			defenderRect[i][j] = { currSpaceX, currSpaceY, defenderw, defenderh };
+			currSpaceX += 100;
+		}
+		currSpaceY += 50;
+		currSpaceX = 40;
+	}	
+}
+
 void EventHandler() {
 	SDL_PollEvent(&event);
 	if (event.type == SDL_QUIT) {
@@ -77,6 +97,9 @@ void EventHandler() {
 		}
 		if (event.key.keysym.sym == SDLK_RIGHT && batX < bgw - 60) {
 			batX += batSpeed;
+		}
+		if (event.key.keysym.sym == SDLK_SPACE) {
+			startgame = true;
 		}
 	}
 
@@ -135,15 +158,30 @@ void ballBrickCollision() {
 	}
 }
 
+void ballDefenderCollision() {
+	bool a;
+	for (int i = 0; i < 2; i++) {
+		for (int j = 0; j < 7; j++) {
+			a = ballCollisionDetect(defenderRect[i][j], ballRect);
+			if (a) {
+				defenderRect[i][j].x = 30000;
+				ballVelY = -ballVelY;
+			}
+		}
+	}
+}
+
 void Destroy(){
 	SDL_DestroyTexture(batTexture);
 	SDL_DestroyTexture(brickTexture);
 	SDL_DestroyTexture(backgroundTexture);
 	SDL_DestroyTexture(ballTexture);
+	SDL_DestroyTexture(defenderTexture);
 	SDL_FreeSurface(bat);
 	SDL_FreeSurface(brick);
 	SDL_FreeSurface(background);
 	SDL_FreeSurface(ball);
+	SDL_FreeSurface(defender);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	
@@ -161,7 +199,7 @@ void win() {
 }
 
 void gameOver() {
-	SDL_Surface *go = SDL_LoadBMP("Assets/Images/win.bmp");
+	SDL_Surface *go = SDL_LoadBMP("Assets/Images/destroyedearth.bmp");
 	SDL_Texture *goTexture = SDL_CreateTextureFromSurface(renderer, go);
 	SDL_Rect goRect = { 0, 0, bgw, bgh };
 	SDL_RenderCopy(renderer, goTexture, NULL, &goRect);
@@ -185,27 +223,34 @@ int main(int argc, char * argv[])
 		//Rect
 		backgroundRect = { 0,0, ScreenX, ScreenY };
 		InitializeBrick();
+		InitializeDefenders();
 		//Surface
-		background = SDL_LoadBMP("Assets/Images/bk.bmp");
-		ball = SDL_LoadBMP("Assets/Images/ball.bmp");
-		bat = SDL_LoadBMP("Assets/Images/bat.bmp");
-		brick = SDL_LoadBMP("Assets/Images/brick.bmp");
+		background = SDL_LoadBMP("Assets/Images/spacebg.bmp");
+		ball = SDL_LoadBMP("Assets/Images/energyball.bmp");
+		bat = SDL_LoadBMP("Assets/Images/playership.bmp");
+		brick = SDL_LoadBMP("Assets/Images/enemyship2.bmp");
+		defender = SDL_LoadBMP("Assets/Images/playership2.bmp");
 		//Texture
 		backgroundTexture = SDL_CreateTextureFromSurface(renderer, background);
 		ballTexture = SDL_CreateTextureFromSurface(renderer, ball);
 		batTexture = SDL_CreateTextureFromSurface(renderer, bat);
 		brickTexture = SDL_CreateTextureFromSurface(renderer, brick);
+		defenderTexture = SDL_CreateTextureFromSurface(renderer, defender);
 
 		SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
+		
 
 		while (!quit) {
-			SDL_Delay(1);
+			SDL_Delay(10);
 			EventHandler();
-			batRect = { (int)batX, (int)batY, 60, 30 };
+			batRect = { (int)batX, (int)batY, 40, 30 };
 			ballRect = { (int)ballX , (int)ballY, 20, 30 };
-			moveBall();
+			if (startgame) { 
+				moveBall(); 
+			}
 			ballCollision();
 			ballBrickCollision();
+			ballDefenderCollision();
 			if (deleteBrickCount == numberOfBricks) {
 				win();
 			}
@@ -215,6 +260,11 @@ int main(int argc, char * argv[])
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 7; j++) {
 					SDL_RenderCopy(renderer, brickTexture, NULL, &brickRect[i][j]);
+				}
+			}
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 7; j++) {
+					SDL_RenderCopy(renderer, defenderTexture, NULL, &defenderRect[i][j]);
 				}
 			}
 			SDL_RenderPresent(renderer);

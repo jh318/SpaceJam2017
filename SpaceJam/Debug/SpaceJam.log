@@ -1,4 +1,3 @@
 ﻿  main.cpp
-g:\visualstudioprojects\spacejam\spacejam\main.cpp(160): warning C4551: function call missing argument list
-     Creating library G:\VisualStudioProjects\SpaceJam\Debug\SpaceJam.lib and object G:\VisualStudioProjects\SpaceJam\Debug\SpaceJam.exp
+g:\visualstudioprojects\spacejam\spacejam\main.cpp(198): warning C4551: function call missing argument list
   SpaceJam.vcxproj -> G:\VisualStudioProjects\SpaceJam\Debug\SpaceJam.exe
