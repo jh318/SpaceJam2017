@@ -6,8 +6,8 @@ int ScreenY = 600;
 bool quit = false;
 SDL_Event event;
 
-float ballX = 10;
-float ballY = 10;
+float ballX = 10;	//Determines Start Location
+float ballY = 300; //Determines Start Location
 float ballVelX = 0.05;
 float ballVelY = 0.05;
 
@@ -25,17 +25,10 @@ int brickh = 35;
 SDL_Surface *brick;
 SDL_Texture *brickTexture;
 SDL_Rect brickRect[3][7];
+SDL_Rect ballRect;
+
 
 void InitializeBrick() {
-	//brickRect[0][0] = { 50,50,brickw, brickh };
-	//brickRect[0][1] = { 150, 50, brickw, brickh };
-	//brickRect[0][2] = { 250, 50, brickw, brickh };
-	//brickRect[0][3] = { 350, 50, brickw, brickh };
-	//brickRect[0][4] = { 450, 50, brickw, brickh };
-	//brickRect[0][5] = { 550, 50, brickw, brickh };
-	//brickRect[0][2] = { 650, 50, brickw, brickh };
-	
-	
 	int currSpaceX = 50;
 	int currSpaceY = 50;
 	
@@ -85,18 +78,50 @@ void ballCollision() {
 	}
 }
 
+bool ballCollisionDetect(SDL_Rect rect1, SDL_Rect rect2) {
+	if (rect1.x > rect2.x + rect2.w) {
+		return false;
+	}
+	if (rect1.x + rect1.w < rect2.x) {
+		return false;
+	}
+	if (rect1.y > rect2.y + rect2.h) {
+		return false;
+	}
+	if (rect1.y + rect1.h < rect2.y) {
+		return false;
+	}
+	return true;
+}	
+
+void ballBrickCollision() {
+	bool a;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 7; j++) {
+			a = ballCollisionDetect(brickRect[i][j], ballRect);
+			if (a) {
+				brickRect[i][j].x = 30000;
+				ballVelY = -ballVelY;
+			}
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 		SDL_Window *window = SDL_CreateWindow("The Game", 
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenX, ScreenY, 0);
 		SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
+		//Rect
 		SDL_Rect backgroundRect = { 0,0, ScreenX, ScreenY };
+		InitializeBrick();
+		//Surface
 		SDL_Surface *background = SDL_LoadBMP("Assets/Images/bk.bmp");
 		SDL_Surface *ball = SDL_LoadBMP("Assets/Images/ball.bmp");
 		SDL_Surface *bat = SDL_LoadBMP("Assets/Images/bat.bmp");
 		brick = SDL_LoadBMP("Assets/Images/brick.bmp");
-
+		//Texture
 		SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(renderer, background);
 		SDL_Texture *ballTexture = SDL_CreateTextureFromSurface(renderer, ball);
 		SDL_Texture *batTexture = SDL_CreateTextureFromSurface(renderer, bat);
@@ -104,15 +129,15 @@ int main(int argc, char *argv[])
 
 		SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
 		//Render Bricks
-		
+
 
 		while (!quit) {
 			EventHandler();
-			SDL_Rect ballRect = { ballX,ballY,20,30 };
 			SDL_Rect batRect = { batX, batY, 60, 30 };
+			ballRect = { (int)ballX , (int)ballY, 20, 30 };
 			moveBall();
 			ballCollision();
-			InitializeBrick();
+			ballBrickCollision();
 			SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
 			SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 			SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
@@ -123,7 +148,6 @@ int main(int argc, char *argv[])
 			}
 			SDL_RenderPresent(renderer);
 			SDL_RenderClear(renderer);
-
 		}
 		
 		SDL_Quit();
